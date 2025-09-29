@@ -12,15 +12,12 @@ const createHtmlTable = (title, headers, rows) => {
   return `<h3>${title}</h3><table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;"><thead><tr>${headers.map(header => `<th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">${header}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(cell => `<td style="border: 1px solid #ddd; padding: 8px;">${cell}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 };
 
-// --- NOVO: Função para enviar notificação para o Discord ---
 async function enviarNotificacaoDiscord(dados) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl) {
     console.log('Webhook do Discord não configurado. Pulando notificação.');
     return;
   }
-
-  // Formata a lista de itens para uma string legível
   let itensDescricao = '';
   if (dados.itensPadrao.length > 0) {
     itensDescricao += '**Itens Padrão:**\n' + dados.itensPadrao.map(item => `- ${item[0]}: ${item[1]}`).join('\n');
@@ -31,14 +28,12 @@ async function enviarNotificacaoDiscord(dados) {
   if (!itensDescricao) {
     itensDescricao = 'Nenhum item solicitado.';
   }
-
-  // Monta a mensagem usando o formato "Embed" do Discord
   const payload = {
-    content: `🔔 **Nova Requisição de Almoxarifado Recebida!**`, // Mensagem de ping/notificação
+    content: `🔔 **Nova Requisição de Almoxarifado Recebida!**`,
     embeds: [
       {
         title: 'Detalhes da Requisição',
-        color: 0x0099ff, // Cor da barra lateral (azul)
+        color: 0x0099ff,
         fields: [
           { name: 'Solicitante', value: dados.nome, inline: true },
           { name: 'Setor', value: dados.setor, inline: true },
@@ -50,14 +45,12 @@ async function enviarNotificacaoDiscord(dados) {
       },
     ],
   };
-
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-
     if (response.ok) {
       console.log('Notificação enviada para o Discord com sucesso.');
     } else {
@@ -111,12 +104,58 @@ export default async function handler(req, res) {
         }
       }
     }
+    
+    // --- CÓDIGO DE DEBUG DAS VARIÁVEIS DE AMBIENTE ---
+    console.log("--- DEBUGANDO VARIÁVEIS DE AMBIENTE DE E-MAIL ---");
+    console.log(`EMAIL_SERVER_HOST: [${process.env.EMAIL_SERVER_HOST}]`);
+    console.log(`EMAIL_SERVER_PORT: [${process.env.EMAIL_SERVER_PORT}]`);
+    console.log(`EMAIL_SERVER_USER: [${process.env.EMAIL_SERVER_USER}]`);
+    console.log("-------------------------------------------------");
 
-    const transporter = nodemailer.createTransport({ /* ... suas configs de email ... */ });
-    const mailOptions = { /* ... suas configs de email ... */ };
+    // --- CÓDIGO DO NODEMAILER RESTAURADO E COMPLETO ---
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_SERVER_HOST,
+      port: process.env.EMAIL_SERVER_PORT,
+      secure: false, // true para porta 465, false para outras
+      auth: {
+        user: process.env.EMAIL_SERVER_USER,
+        pass: process.env.EMAIL_SERVER_PASSWORD,
+      },
+    });
+
+    const attachments = [];
+    const fotoFile = getFieldValue(files.foto);
+    if (fotoFile && fotoFile.size > 0) {
+      attachments.push({
+        filename: fotoFile.originalFilename,
+        path: fotoFile.filepath,
+      });
+    }
+
+    const mailOptions = {
+      from: `"${nome || 'Sistema Almoxarifado'}" <${process.env.EMAIL_FROM}>`,
+      to: process.env.EMAIL_TO,
+      cc: enviarCopia && copiaEmail ? copiaEmail : '',
+      subject: `Nova Requisição de Almoxarifado - Setor: ${setor}`,
+      html: `
+        <h1>Nova Requisição de Almoxarifado</h1>
+        <p><strong>Data da Requisição:</strong> ${new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</p>
+        <p><strong>Solicitante:</strong> ${nome}</p>
+        <p><strong>Setor:</strong> ${setor}</p>
+        <hr>
+        ${createHtmlTable('Itens Padrão Solicitados', ['Item', 'Quantidade'], itensPadrao)}
+        ${createHtmlTable('Itens Fora da Lista Solicitados', ['Item', 'Unidade / Quantidade'], itensPersonalizados)}
+        <hr>
+        <h3>Anotações:</h3>
+        <p>${(anotacao || 'Nenhuma').replace(/\n/g, '<br>')}</p>
+        <br>
+        ${enviarCopia ? `<p><em>Cópia enviada para: ${copiaEmail}</em></p>` : ''}
+      `,
+      attachments: attachments,
+    };
+    
     await transporter.sendMail(mailOptions);
 
-    // --- NOVO: Chama a função para notificar o Discord após enviar o e-mail ---
     await enviarNotificacaoDiscord({
       nome,
       setor,
