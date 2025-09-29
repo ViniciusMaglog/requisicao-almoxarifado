@@ -101,7 +101,7 @@ export default function RequisicaoAlmoxarifadoPage() {
         <div className="flex justify-center mb-4">
           <Image src="/logo.png" alt="Logo Maglog" width={150} height={50} priority />
         </div>
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">Requisição Almoxarifado</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">Requisição de Almoxarifado</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Seus Dados */}
@@ -125,7 +125,7 @@ export default function RequisicaoAlmoxarifadoPage() {
               <div key={item} className="flex justify-between items-center">
                 <label htmlFor={`item_${item}`} className="text-gray-700 dark:text-gray-300">{item}</label>
                 <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => handleQuantidadePadraoChange(item, quantidadesPadrao[item] - 1)} className="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md">-</button>
+                  <button type="button" onClick={() => handleQuantidadePadraoChange(item, quantidadesPadrao[item] - 1)} className="cursor-pointer px-3 py-1 bg-cyan-600 text-white hover:bg-cyan-700 rounded-md">-</button>
                   <input
                     type="number"
                     id={`item_${item}`}
@@ -134,7 +134,7 @@ export default function RequisicaoAlmoxarifadoPage() {
                     onChange={(e) => handleQuantidadePadraoChange(item, e.target.value)}
                     className="w-16 text-center border-gray-300 rounded-md"
                   />
-                  <button type="button" onClick={() => handleQuantidadePadraoChange(item, quantidadesPadrao[item] + 1)} className="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md">+</button>
+                  <button type="button" onClick={() => handleQuantidadePadraoChange(item, quantidadesPadrao[item] + 1)} className="cursor-pointer px-3 py-1 bg-cyan-600 text-white hover:bg-cyan-700 rounded-md">+</button>
                 </div>
               </div>
             ))}
@@ -154,11 +154,11 @@ export default function RequisicaoAlmoxarifadoPage() {
                   <input type="text" name="quantidade" value={item.quantidade} onChange={(e) => handleItemPersonalizadoChange(index, e)} className={`${inputStyles} text-sm`} />
                 </div>
                 {itensPersonalizados.length > 1 && (
-                  <button type="button" onClick={() => handleRemoveItemPersonalizado(index)} className="w-full sm:w-auto px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">-</button>
+                  <button type="button" onClick={() => handleRemoveItemPersonalizado(index)} className="cursor-pointer w-full sm:w-auto px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">-</button>
                 )}
               </div>
             ))}
-            <button type="button" onClick={handleAddItemPersonalizado} className="mt-2 px-3 py-1 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 font-bold">+</button>
+            <button type="button" onClick={handleAddItemPersonalizado} className="cursor-pointer mt-2 px-3 py-1 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 font-bold">+</button>
           </fieldset>
 
           {/* Anotação */}
@@ -186,7 +186,7 @@ export default function RequisicaoAlmoxarifadoPage() {
 
           {/* Botão Enviar */}
           <div className="text-center">
-            <button type="submit" disabled={status.submitting} className="w-full sm:w-auto px-8 py-3 bg-cyan-600 text-white font-semibold rounded-md hover:bg-cyan-700 disabled:bg-cyan-400 transition-colors">
+            <button type="submit" disabled={status.submitting} className="cursor-pointer w-full sm:w-auto px-8 py-3 bg-cyan-600 text-white font-semibold rounded-md hover:bg-cyan-700 disabled:bg-cyan-400 transition-colors">
               {status.submitting ? 'Enviando...' : 'ENVIAR'}
             </button>
           </div>
