@@ -32,7 +32,7 @@ async function enviarNotificacaoDiscord(dados) {
     content: `🔔 **Nova Requisição de Almoxarifado Recebida!**`,
     embeds: [
       {
-        title: 'Detalhes da Requisição',
+        title: 'Detalhes da Requisição de Almoxarifado',
         color: 0x0099ff,
         fields: [
           { name: 'Solicitante', value: dados.nome, inline: true },
