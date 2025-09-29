@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
+// --- NOVO: Importação da biblioteca de compressão de imagem ---
+import imageCompression from 'browser-image-compression';
 
-// --- NOVO: Estrutura de itens por categoria ---
+// Estrutura de itens por categoria
 const ITENS_CATEGORIZADOS = [
   {
     categoria: 'Etiquetas e Ribbons',
@@ -33,8 +35,7 @@ export default function RequisicaoAlmoxarifadoPage() {
 
   const [itensPersonalizados, setItensPersonalizados] = useState([{ nome: '', quantidade: '' }]);
   
-  // --- NOVO: Estado para controlar qual categoria está aberta ---
-  const [categoriaAberta, setCategoriaAberta] = useState('Etiquetas e Ribbons'); // Deixa a primeira aberta por padrão
+  const [categoriaAberta, setCategoriaAberta] = useState('Etiquetas e Ribbons');
 
   const handleToggleCategoria = (categoria) => {
     setCategoriaAberta(categoriaAberta === categoria ? null : categoria);
@@ -48,7 +49,6 @@ export default function RequisicaoAlmoxarifadoPage() {
     }));
   };
 
-  // Funções para gerenciar itens personalizados (sem alteração)
   const handleItemPersonalizadoChange = (index, event) => {
     const newItems = [...itensPersonalizados];
     newItems[index][event.target.name] = event.target.value;
@@ -64,11 +64,34 @@ export default function RequisicaoAlmoxarifadoPage() {
     setItensPersonalizados(newItems);
   };
 
-  // O handleSubmit não precisa de alteração, pois já envia apenas itens com qtde > 0
+  // --- ALTERADO: Função handleSubmit agora inclui a compressão da imagem ---
   const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus({ submitting: true, success: false, error: '' });
+
     const formData = new FormData(event.target);
+
+    // Lógica de Compressão de Imagem
+    const imageFile = formData.get('foto');
+    if (imageFile && imageFile.size > 0) {
+      console.log(`Tamanho original do arquivo: ${(imageFile.size / 1024 / 1024).toFixed(2)} MB`);
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+      try {
+        const compressedFile = await imageCompression(imageFile, options);
+        console.log(`Tamanho do arquivo comprimido: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+        formData.set('foto', compressedFile, compressedFile.name);
+      } catch (error) {
+        console.error('Erro ao comprimir a imagem:', error);
+        setStatus({ submitting: false, success: false, error: 'Erro ao processar a imagem.' });
+        return;
+      }
+    }
+
+    // Lógica para adicionar itens (sem alteração)
     for (const [item, qtde] of Object.entries(quantidadesPadrao)) {
       if (qtde > 0) {
         formData.append(`item_padrao_${item}`, qtde);
@@ -81,6 +104,8 @@ export default function RequisicaoAlmoxarifadoPage() {
       }
     });
     formData.append('item_personalizado_count', itensPersonalizados.length);
+    
+    // Lógica de envio do formulário (sem alteração)
     try {
       const response = await fetch('/api/solicitacao', { method: 'POST', body: formData });
       const data = await response.json();
@@ -111,7 +136,6 @@ export default function RequisicaoAlmoxarifadoPage() {
             </div>
           </fieldset>
 
-          {/* --- ALTERADO: Renderização dos itens em formato de Acordeão --- */}
           <div className="border border-gray-300 dark:border-gray-600 rounded-md">
             {ITENS_CATEGORIZADOS.map(({ categoria, items }) => (
               <div key={categoria} className="border-b last:border-b-0 border-gray-200 dark:border-gray-700">
@@ -150,7 +174,7 @@ export default function RequisicaoAlmoxarifadoPage() {
           </fieldset>
           
           <div><label htmlFor="anotacao" className={labelStyles}>Anotações sobre o pedido</label><textarea id="anotacao" name="anotacao" rows="4" className={inputStyles} placeholder="Ex: Solicitação para cliente XYZ"></textarea></div>
-          <div><label htmlFor="foto" className={labelStyles}>Anexar uma foto (opcional)</label><input id="foto" name="foto" type="file" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100"/></div>
+          <div><label htmlFor="foto" className={labelStyles}>Anexar uma foto (opcional)</label><input id="foto" name="foto" type="file" accept="image/*" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100"/></div>
           <div className="border border-gray-300 dark:border-gray-600 p-4 rounded-md">
             <div className="flex items-center"><input type="checkbox" id="enviarCopia" name="enviarCopia" className="h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500" /><label htmlFor="enviarCopia" className="ml-2 block text-sm text-gray-900 dark:text-gray-200">Envie uma cópia para o seu email?</label></div>
             <input type="email" id="copiaEmail" name="copiaEmail" className={`${inputStyles} mt-2`} placeholder="exemplo@maglog.com.br"/>
