@@ -57,7 +57,10 @@ export default async function handler(req, res) {
       if (key.startsWith('item_padrao_')) {
         const itemName = key.replace('item_padrao_', '');
         const quantidade = getFieldValue(fields[key]);
-        itensPadrao.push([itemName, quantidade]);
+        // --- AJUSTE IMPORTANTE: Garante que apenas itens com quantidade > 0 entrem na lista ---
+        if (parseInt(quantidade, 10) > 0) {
+          itensPadrao.push([itemName, quantidade]);
+        }
       }
     }
 
@@ -80,7 +83,7 @@ export default async function handler(req, res) {
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_SERVER_HOST,
       port: process.env.EMAIL_SERVER_PORT,
-      secure: false, // true for 465, false for other ports
+      secure: false,
       auth: {
         user: process.env.EMAIL_SERVER_USER,
         pass: process.env.EMAIL_SERVER_PASSWORD,
@@ -103,7 +106,7 @@ export default async function handler(req, res) {
       subject: `Nova Requisição de Almoxarifado - Setor: ${setor}`,
       html: `
         <h1>Nova Requisição de Almoxarifado</h1>
-        <p><strong>Data da Requisição:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+        <p><strong>Data da Requisição:</strong> ${new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</p>
         <p><strong>Solicitante:</strong> ${nome}</p>
         <p><strong>Setor:</strong> ${setor}</p>
         <hr>
