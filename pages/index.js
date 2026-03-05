@@ -4,10 +4,10 @@ import imageCompression from 'browser-image-compression';
 import Head from 'next/head';
 
 const ITENS_CATEGORIZADOS = [
-  { categoria: 'Etiquetas e Ribbons', items: ['ETIQUETA 100X150', 'ETIQUETA 100X170', 'RIBBON'] },
-  { categoria: 'Fitas Adesivas', items: ['FITA DUREX CEX100', 'FITA FRACIONADA MAGLOG', 'FITA FRÁGIL'] },
+  { categoria: 'Etiquetas e Ribbons', items: ['ETIQUETA 100X150', 'ETIQUETA 100X70', 'ETIQUETA 100X30', 'RIBBON'] },
+  { categoria: 'Fitas Adesivas', items: ['FITA DUREX', 'FITA FRACIONADA MAGLOG', 'FITA FRÁGIL'] },
   { categoria: 'Embalagens e Proteção', items: ['STRETCH', 'KRAFT', 'PLÁSTICO BOLHA'] },
-  { categoria: 'Escritório', items: ['SULFITE A4'] },
+  { categoria: 'Escritório', items: ['SULFITE A4', 'ELÁSTICO', 'CLIPES'] },
 ];
 
 const TODOS_OS_ITENS = ITENS_CATEGORIZADOS.flatMap(cat => cat.items);
