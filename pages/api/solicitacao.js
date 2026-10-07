@@ -105,23 +105,37 @@ export default async function handler(req, res) {
       }
     }
     
-    // --- CÓDIGO DE DEBUG DAS VARIÁVEIS DE AMBIENTE ---
-    console.log("--- DEBUGANDO VARIÁVEIS DE AMBIENTE DE E-MAIL ---");
-    console.log(`EMAIL_SERVER_HOST: [${process.env.EMAIL_SERVER_HOST}]`);
-    console.log(`EMAIL_SERVER_PORT: [${process.env.EMAIL_SERVER_PORT}]`);
-    console.log(`EMAIL_SERVER_USER: [${process.env.EMAIL_SERVER_USER}]`);
-    console.log("-------------------------------------------------");
+// ======================================================
+// VALIDAÇÃO DAS VARIÁVEIS DE AMBIENTE
+// ======================================================
+if (!process.env.GMAIL_USER) {
+  throw new Error(
+    'Variável GMAIL_USER não configurada na Vercel.'
+  );
+}
 
-    // --- CÓDIGO DO NODEMAILER RESTAURADO E COMPLETO ---
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_SERVER_HOST,
-      port: process.env.EMAIL_SERVER_PORT,
-      secure: false, // true para porta 465, false para outras
-      auth: {
-        user: process.env.EMAIL_SERVER_USER,
-        pass: process.env.EMAIL_SERVER_PASSWORD,
-      },
-    });
+if (!process.env.GMAIL_APP_PASSWORD) {
+  throw new Error(
+    'Variável GMAIL_APP_PASSWORD não configurada na Vercel.'
+  );
+}
+
+if (!process.env.EMAIL_TO) {
+  throw new Error(
+    'Variável EMAIL_TO não configurada na Vercel.'
+  );
+}
+
+// ======================================================
+// TRANSPORTER - GMAIL
+// ======================================================
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
     const attachments = [];
     const fotoFile = getFieldValue(files.foto);
@@ -132,10 +146,16 @@ export default async function handler(req, res) {
       });
     }
 
-    const mailOptions = {
-      from: `"${nome || 'Sistema Almoxarifado'}" <${process.env.EMAIL_FROM}>`,
-      to: process.env.EMAIL_TO,
-      cc: enviarCopia && copiaEmail ? copiaEmail : '',
+const mailOptions = {
+  from: `"Envios Maglog" <${process.env.GMAIL_USER}>`,
+
+  to: process.env.EMAIL_TO,
+
+  ...(enviarCopia && copiaEmail
+    ? {
+        cc: copiaEmail,
+      }
+    : {}),
       subject: `Nova Requisição de Almoxarifado - Setor: ${setor}`,
       html: `
         <h1>Nova Requisição de Almoxarifado</h1>
